@@ -1,7 +1,8 @@
 // API Base URL - adjust for your server setup
 const API_BASE_URL = '../api';
 
-let MOCK_MENU = [
+// Fallback mock data (only used when API is unavailable)
+const MOCK_MENU = [
     { id: 1, name: 'Burger', price: 120.99, category: 'Main Course', description: 'Juicy beef burger with cheese' },
     { id: 2, name: 'Fries', price: 80.25, category: 'Sides', description: 'Crispy golden fries' },
     { id: 3, name: 'Coke', price: 45.00, category: 'Beverages', description: 'Refreshing cola drink' },
@@ -444,27 +445,46 @@ window.markAsCompleted = function(orderId) {
 }
 
 
-function renderMenu() {
-    menuList.innerHTML = '';
-   
-    MOCK_MENU.forEach(item => {
-        const formattedPrice = item.price ? parseFloat(item.price).toFixed(2) : '0.00';
-        const description = item.description || 'No description available.';
+// Cache for menu items to avoid redundant API calls
+let cachedMenuItems = [];
 
-        menuList.innerHTML += `
-            <div class="p-6 bg-white rounded-2xl shadow-lg border border-gray-200 transition duration-300 hover:shadow-xl">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-xl font-bold text-gray-800">${item.name}</h3>
-                    <span class="text-lg font-extrabold text-primary">₱${formattedPrice}</span>
+async function renderMenu() {
+    menuList.innerHTML = '<p class="text-center text-gray-500">Loading menu items...</p>';
+   
+    try {
+        // Fetch menu items from database via API
+        const menuItems = await AdminAPI.getMenu();
+        cachedMenuItems = menuItems; // Update cache
+        
+        menuList.innerHTML = '';
+        
+        if (menuItems.length === 0) {
+            menuList.innerHTML = '<p class="text-center text-gray-500">No menu items found. Add your first item!</p>';
+            return;
+        }
+        
+        menuItems.forEach(item => {
+            const formattedPrice = item.price ? parseFloat(item.price).toFixed(2) : '0.00';
+            const description = item.description || 'No description available.';
+
+            menuList.innerHTML += `
+                <div class="p-6 bg-white rounded-2xl shadow-lg border border-gray-200 transition duration-300 hover:shadow-xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-xl font-bold text-gray-800">${item.name}</h3>
+                        <span class="text-lg font-extrabold text-primary">₱${formattedPrice}</span>
+                    </div>
+                    <p class="text-gray-600 mb-4">${description}</p>
+                    <div class="flex space-x-3">
+                        <button onclick="editItem(${item.id})" class="px-4 py-2 bg-blue-400 text-white font-semibold rounded-lg hover:bg-yellow-400 transition duration-150 active:scale-95">Edit</button>
+                        <button onclick="deleteItem(${item.id})" class="px-4 py-2 bg-green-400 text-white font-semibold rounded-lg hover:bg-red-600 transition duration-150 active:scale-95">Delete</button>
+                    </div>
                 </div>
-                <p class="text-gray-600 mb-4">${description}</p>
-                <div class="flex space-x-3">
-                    <button onclick="editItem(${item.id})" class="px-4 py-2 bg-blue-400 text-white font-semibold rounded-lg hover:bg-yellow-400 transition duration-150 active:scale-95">Edit</button>
-                    <button onclick="deleteItem(${item.id})" class="px-4 py-2 bg-green-400 text-white font-semibold rounded-lg hover:bg-red-600 transition duration-150 active:scale-95">Delete</button>
-                </div>
-            </div>
-        `;
-    });
+            `;
+        });
+    } catch (error) {
+        console.error('Error loading menu:', error);
+        menuList.innerHTML = '<p class="text-center text-red-500">Failed to load menu items. Please try again.</p>';
+    }
 }
 
 // Modal functions
@@ -479,7 +499,7 @@ window.closeAddModal = function() {
 }
 
 // CRUD functions
-window.addItem = function() {
+window.addItem = async function() {
     const name = document.getElementById('item-name').value;
     const price = parseFloat(document.getElementById('item-price').value);
     const description = document.getElementById('item-desc').value;
@@ -490,30 +510,114 @@ window.addItem = function() {
         return;
     }
 
-    // Assign a new unique ID
+    // Save to database via API
     const newItem = { 
-        id: Date.now(), 
         name: name, 
         price: price, 
         description: description,
         category: category 
     };
 
-    MOCK_MENU.push(newItem);
+    const result = await AdminAPI.addMenuItem(newItem);
     
-    closeAddModal();
-    renderMenu();
-}
-
-window.deleteItem = function(id) {
-    if (confirm("Are you sure you want to delete this menu item?")) {
-        // Update MOCK_MENU array
-        MOCK_MENU = MOCK_MENU.filter(x => x.id !== id);
+    if (result.success) {
+        closeAddModal();
         renderMenu();
+        alert('Menu item added successfully!');
+    } else {
+        alert('Failed to add menu item: ' + (result.message || 'Unknown error'));
     }
 }
 
-// Placeholder for Edit functionality
+window.deleteItem = async function(id) {
+    if (confirm("Are you sure you want to delete this menu item?")) {
+        // Delete from database via API
+        const result = await AdminAPI.deleteMenuItem(id);
+        
+        if (result.success) {
+            renderMenu();
+            alert('Menu item deleted successfully!');
+        } else {
+            alert('Failed to delete menu item: ' + (result.message || 'Unknown error'));
+        }
+    }
+}
+
+// Edit modal functions
+window.openEditModal = function() { document.getElementById('edit-modal').classList.remove('hidden'); }
+window.closeEditModal = function() { 
+    document.getElementById('edit-item-id').value = '';
+    document.getElementById('edit-item-name').value = '';
+    document.getElementById('edit-item-price').value = '';
+    document.getElementById('edit-item-desc').value = '';
+    document.getElementById('edit-item-category').value = '';
+    document.getElementById('edit-modal').classList.add('hidden'); 
+}
+
+// Store current item being edited to preserve existing values
+let currentEditItem = null;
+
+// Edit item - open modal with item data
 window.editItem = function(id) {
-    alert(`Editing item ID: ${id}. Please implement a dedicated Edit modal.`);
+    try {
+        // Use cached menu items to avoid redundant API calls
+        const item = cachedMenuItems.find(i => i.id === id);
+        
+        if (!item) {
+            alert('Item not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Store current item for preserving values during update
+        currentEditItem = item;
+        
+        // Populate edit modal with item data
+        document.getElementById('edit-item-id').value = item.id;
+        document.getElementById('edit-item-name').value = item.name || '';
+        document.getElementById('edit-item-price').value = item.price || '';
+        document.getElementById('edit-item-desc').value = item.description || '';
+        document.getElementById('edit-item-category').value = item.category || '';
+        
+        openEditModal();
+    } catch (error) {
+        console.error('Error opening edit modal:', error);
+        alert('Failed to load item data. Please try again.');
+    }
+}
+
+// Update item via API
+window.updateItem = async function() {
+    const id = parseInt(document.getElementById('edit-item-id').value);
+    const name = document.getElementById('edit-item-name').value;
+    const price = parseFloat(document.getElementById('edit-item-price').value);
+    const description = document.getElementById('edit-item-desc').value;
+    const category = document.getElementById('edit-item-category').value || 'New Item';
+
+    if (!name || isNaN(price) || price < 0) {
+        alert("Item Name and valid Price are required!");
+        return;
+    }
+
+    // Preserve existing values from the current item being edited
+    const updatedItem = { 
+        id: id,
+        name: name, 
+        price: price, 
+        description: description,
+        category: category,
+        image_url: currentEditItem ? (currentEditItem.imageUrl || '') : '',
+        inventory_quantity: currentEditItem ? (currentEditItem.inventory_quantity || 0) : 0,
+        is_available: currentEditItem ? (currentEditItem.is_available !== false ? 1 : 0) : 1
+    };
+
+    const result = await AdminAPI.updateMenuItem(updatedItem);
+    
+    if (result.success) {
+        closeEditModal();
+        currentEditItem = null; // Clear the stored item
+        renderMenu();
+        alert('Menu item updated successfully!');
+    } else {
+        alert('Failed to update menu item: ' + (result.message || 'Unknown error'));
+    }
 }
