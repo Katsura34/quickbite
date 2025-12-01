@@ -62,7 +62,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
 
             <header class="mb-8">
                 <h1 id="content-title" class="text-3xl font-bold text-gray-800">Today's Menu</h1>
-                <p id="content-subtitle" class="text-gray-500">Fresh food prepared daily for our costumer.</p>
+                <p id="content-subtitle" class="text-gray-500">Fresh food prepared daily for our customer.</p>
             </header>
 
             <section id="menu-content" class="content-section">
