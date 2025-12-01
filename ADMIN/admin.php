@@ -186,6 +186,28 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                         </div>
                     </div>
                 </div>
+
+                <div id="edit-modal" class="fixed inset-0 bg-black/40 hidden flex justify-center items-center p-4 z-50 transition-opacity duration-300">
+                    <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl transition-transform duration-300 transform scale-100">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Edit Menu Item</h2>
+
+                        <input id="edit-item-id" type="hidden" />
+                        <input id="edit-item-name" type="text" placeholder="Item Name" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-primary focus:border-primary" />
+                        <input id="edit-item-price" type="number" step="0.01" placeholder="Price (e.g., 120.99)" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-primary focus:border-primary" />
+                        <select id="edit-item-category" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-primary focus:border-primary">
+                            <option value="">--Select Category--</option>
+                            <option value="Main Course">Main Course</option>
+                            <option value="Sides">Sides</option>
+                            <option value="Beverages">Beverages</option>
+                        </select>
+                        <textarea id="edit-item-desc" placeholder="Description" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-primary focus:border-primary"></textarea>
+
+                        <div class="flex justify-end space-x-3 mt-4">
+                            <button onclick="closeEditModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">Cancel</button>
+                            <button onclick="updateItem()" class="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition">Update</button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
         </div>
