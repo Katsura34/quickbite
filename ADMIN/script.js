@@ -244,10 +244,7 @@ function handleLogoutAdmin() {
 // --- SALES REPORT LOGIC ---
 
 
-function renderSalesReport(date) {
-    const salesReport = MOCK_SALES_REPORTS.find(r => r.report_date === date);
-    const ordersForDate = MOCK_ORDERS.filter(o => o.order_date.startsWith(date));
-
+async function renderSalesReport(date) {
     // Clear previous data
     ordersReportBody.innerHTML = '';
     noReportDataMsg.classList.add('hidden');
@@ -255,49 +252,81 @@ function renderSalesReport(date) {
     totalOrdersElement.textContent = '0';
     topItemElement.textContent = 'N/A';
 
-    if (!salesReport && ordersForDate.length === 0) {
+    // Fetch data from API
+    const reportData = await AdminAPI.getSalesReport(date);
+    
+    // If API call failed, fall back to mock data
+    if (!reportData) {
+        const salesReport = MOCK_SALES_REPORTS.find(r => r.report_date === date);
+        const ordersForDate = MOCK_ORDERS.filter(o => o.order_date.startsWith(date));
+
+        if (!salesReport && ordersForDate.length === 0) {
+            noReportDataMsg.classList.remove('hidden');
+            return;
+        }
+
+        // Render mock data
+        if (salesReport) {
+            totalRevenueElement.textContent = `₱${salesReport.total_revenue.toFixed(2)}`;
+            totalOrdersElement.textContent = salesReport.total_orders;
+            const topItem = MOCK_MENU.find(i => i.id === salesReport.top_item_id); 
+            topItemElement.textContent = topItem ? topItem.name : 'Unknown Item';
+        }
+
+        ordersForDate.forEach(order => {
+            renderOrderRow(order);
+        });
+
+        if (ordersForDate.length > 0 && !salesReport) {
+            const calculatedRevenue = ordersForDate.reduce((sum, order) => sum + order.total_amount, 0);
+            totalRevenueElement.textContent = `₱${calculatedRevenue.toFixed(2)}`;
+            totalOrdersElement.textContent = ordersForDate.length;
+        }
+        return;
+    }
+
+    // Render API data
+    const { total_orders, total_revenue, top_item, orders } = reportData;
+
+    if (total_orders === 0 && orders.length === 0) {
         noReportDataMsg.classList.remove('hidden');
         return;
     }
 
     // --- 1. Render Summary Cards ---
-    if (salesReport) {
-        totalRevenueElement.textContent = `₱${salesReport.total_revenue.toFixed(2)}`;
-        totalOrdersElement.textContent = salesReport.total_orders;
-        // Use MOCK_MENU array which now contains descriptions
-        const topItem = MOCK_MENU.find(i => i.id === salesReport.top_item_id); 
-        topItemElement.textContent = topItem ? topItem.name : 'Unknown Item';
-    }
+    totalRevenueElement.textContent = `₱${total_revenue.toFixed(2)}`;
+    totalOrdersElement.textContent = total_orders;
+    topItemElement.textContent = top_item ? top_item.name : 'N/A';
 
     // --- 2. Render Order Breakdown Table ---
-    ordersForDate.forEach(order => {
-        const statusClass = order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                             order.status === 'ready' ? 'bg-blue-100 text-blue-700' :
-                             'bg-yellow-100 text-yellow-700';
-
-        const itemsText = order.items.map(item => `${item.name} x ${item.quantity}`).join(', ');
-
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-50 transition duration-100';
-        row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${order.id.slice(-4)}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.customer_name}</td>
-            <td class="px-6 py-4 text-sm text-gray-500 max-w-sm truncate" title="${itemsText}">${itemsText}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-800">₱${order.total_amount.toFixed(2)}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass} capitalize">
-                    ${order.status}
-                </span>
-            </td>
-        `;
-        ordersReportBody.appendChild(row);
+    orders.forEach(order => {
+        renderOrderRow(order);
     });
+}
 
-    if (ordersForDate.length > 0 && !salesReport) {
-        const calculatedRevenue = ordersForDate.reduce((sum, order) => sum + order.total_amount, 0);
-        totalRevenueElement.textContent = `₱${calculatedRevenue.toFixed(2)}`;
-        totalOrdersElement.textContent = ordersForDate.length;
-    }
+// Helper function to render a single order row
+function renderOrderRow(order) {
+    const statusClass = order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                         order.status === 'ready' ? 'bg-blue-100 text-blue-700' :
+                         'bg-yellow-100 text-yellow-700';
+
+    const itemsText = order.items ? order.items.map(item => `${item.name} x ${item.quantity}`).join(', ') : '';
+    const orderId = order.id ? order.id.toString().slice(-4) : 'N/A';
+
+    const row = document.createElement('tr');
+    row.className = 'hover:bg-gray-50 transition duration-100';
+    row.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${orderId}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.customer_name || 'Unknown'}</td>
+        <td class="px-6 py-4 text-sm text-gray-500 max-w-sm truncate" title="${itemsText}">${itemsText}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-800">₱${order.total_amount ? order.total_amount.toFixed(2) : '0.00'}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass} capitalize">
+                ${order.status || 'unknown'}
+            </span>
+        </td>
+    `;
+    ordersReportBody.appendChild(row);
 }
 
 
