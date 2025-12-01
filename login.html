@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOG IN FORM</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: linear-gradient(to right, #a4e8dc, #ACB6E5);
+            color: dimgray;
+        }
+
+        .container {
+            margin: 0 15px;
+        }
+
+        .form-box {
+            width: 100%;
+            max-width: 450px;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .form-box.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 34px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            background: #eee;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #7494ec;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.5s;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #6884d3;
+        }
+
+        p {
+            font-size: 14.5px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        p a {
+            color: #6884d3;
+            text-decoration: none;
+        }
+
+        p a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- LOGIN FORM -->
+        <div class="form-box active" id="login-form">
+            <form action="login.php" method="POST">
+                <h2>Login</h2>
+
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+
+                <select name="role" required>
+                    <option value="">--Select Role--</option>
+                    <option value="admin">Admin</option>
+                    <option value="customer">Customer</option>
+                </select>
+
+                <button type="submit">Log In</button>
+
+                <p class="message">Not registered? <a href="#" onclick="showForm('register-form')">Create an account</a></p>
+            </form>
+        </div>
+
+
+        <!-- REGISTER FORM -->
+        <div class="form-box" id="register-form">
+            <form action="signup.php" method="POST">
+                <h2>Register</h2>
+
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="password" name="password" placeholder="Password" required>
+
+                <select name="role" required>
+                    <option value="">--Select Role--</option>
+                    <option value="admin">Admin</option>
+                    <option value="customer">Customer</option>
+                </select>
+
+                <button type="submit">Register</button>
+
+                <p class="message">Already have an account? <a href="#" onclick="showForm('login-form')">Login</a></p>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        function showForm(formId) {
+            document.querySelectorAll('.form-box').forEach(form =>
+                form.classList.remove('active')
+            );
+            document.getElementById(formId).classList.add('active');
+        }
+    </script>
+
+</body>
+
+</html>
