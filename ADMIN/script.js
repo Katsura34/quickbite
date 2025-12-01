@@ -445,37 +445,46 @@ window.markAsCompleted = function(orderId) {
 }
 
 
+// Cache for menu items to avoid redundant API calls
+let cachedMenuItems = [];
+
 async function renderMenu() {
     menuList.innerHTML = '<p class="text-center text-gray-500">Loading menu items...</p>';
    
-    // Fetch menu items from database via API
-    const menuItems = await AdminAPI.getMenu();
-    
-    menuList.innerHTML = '';
-    
-    if (menuItems.length === 0) {
-        menuList.innerHTML = '<p class="text-center text-gray-500">No menu items found. Add your first item!</p>';
-        return;
-    }
-    
-    menuItems.forEach(item => {
-        const formattedPrice = item.price ? parseFloat(item.price).toFixed(2) : '0.00';
-        const description = item.description || 'No description available.';
+    try {
+        // Fetch menu items from database via API
+        const menuItems = await AdminAPI.getMenu();
+        cachedMenuItems = menuItems; // Update cache
+        
+        menuList.innerHTML = '';
+        
+        if (menuItems.length === 0) {
+            menuList.innerHTML = '<p class="text-center text-gray-500">No menu items found. Add your first item!</p>';
+            return;
+        }
+        
+        menuItems.forEach(item => {
+            const formattedPrice = item.price ? parseFloat(item.price).toFixed(2) : '0.00';
+            const description = item.description || 'No description available.';
 
-        menuList.innerHTML += `
-            <div class="p-6 bg-white rounded-2xl shadow-lg border border-gray-200 transition duration-300 hover:shadow-xl">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-xl font-bold text-gray-800">${item.name}</h3>
-                    <span class="text-lg font-extrabold text-primary">₱${formattedPrice}</span>
+            menuList.innerHTML += `
+                <div class="p-6 bg-white rounded-2xl shadow-lg border border-gray-200 transition duration-300 hover:shadow-xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-xl font-bold text-gray-800">${item.name}</h3>
+                        <span class="text-lg font-extrabold text-primary">₱${formattedPrice}</span>
+                    </div>
+                    <p class="text-gray-600 mb-4">${description}</p>
+                    <div class="flex space-x-3">
+                        <button onclick="editItem(${item.id})" class="px-4 py-2 bg-blue-400 text-white font-semibold rounded-lg hover:bg-yellow-400 transition duration-150 active:scale-95">Edit</button>
+                        <button onclick="deleteItem(${item.id})" class="px-4 py-2 bg-green-400 text-white font-semibold rounded-lg hover:bg-red-600 transition duration-150 active:scale-95">Delete</button>
+                    </div>
                 </div>
-                <p class="text-gray-600 mb-4">${description}</p>
-                <div class="flex space-x-3">
-                    <button onclick="editItem(${item.id})" class="px-4 py-2 bg-blue-400 text-white font-semibold rounded-lg hover:bg-yellow-400 transition duration-150 active:scale-95">Edit</button>
-                    <button onclick="deleteItem(${item.id})" class="px-4 py-2 bg-green-400 text-white font-semibold rounded-lg hover:bg-red-600 transition duration-150 active:scale-95">Delete</button>
-                </div>
-            </div>
-        `;
-    });
+            `;
+        });
+    } catch (error) {
+        console.error('Error loading menu:', error);
+        menuList.innerHTML = '<p class="text-center text-red-500">Failed to load menu items. Please try again.</p>';
+    }
 }
 
 // Modal functions
@@ -545,25 +554,35 @@ window.closeEditModal = function() {
     document.getElementById('edit-modal').classList.add('hidden'); 
 }
 
+// Store current item being edited to preserve existing values
+let currentEditItem = null;
+
 // Edit item - open modal with item data
-window.editItem = async function(id) {
-    // Fetch current menu items to get the item data
-    const menuItems = await AdminAPI.getMenu();
-    const item = menuItems.find(i => i.id === id);
-    
-    if (!item) {
-        alert('Item not found');
-        return;
+window.editItem = function(id) {
+    try {
+        // Use cached menu items to avoid redundant API calls
+        const item = cachedMenuItems.find(i => i.id === id);
+        
+        if (!item) {
+            alert('Item not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Store current item for preserving values during update
+        currentEditItem = item;
+        
+        // Populate edit modal with item data
+        document.getElementById('edit-item-id').value = item.id;
+        document.getElementById('edit-item-name').value = item.name || '';
+        document.getElementById('edit-item-price').value = item.price || '';
+        document.getElementById('edit-item-desc').value = item.description || '';
+        document.getElementById('edit-item-category').value = item.category || '';
+        
+        openEditModal();
+    } catch (error) {
+        console.error('Error opening edit modal:', error);
+        alert('Failed to load item data. Please try again.');
     }
-    
-    // Populate edit modal with item data
-    document.getElementById('edit-item-id').value = item.id;
-    document.getElementById('edit-item-name').value = item.name || '';
-    document.getElementById('edit-item-price').value = item.price || '';
-    document.getElementById('edit-item-desc').value = item.description || '';
-    document.getElementById('edit-item-category').value = item.category || '';
-    
-    openEditModal();
 }
 
 // Update item via API
@@ -579,22 +598,23 @@ window.updateItem = async function() {
         return;
     }
 
-    // Update in database via API
+    // Preserve existing values from the current item being edited
     const updatedItem = { 
         id: id,
         name: name, 
         price: price, 
         description: description,
         category: category,
-        image_url: '',
-        inventory_quantity: 0,
-        is_available: 1
+        image_url: currentEditItem ? (currentEditItem.imageUrl || '') : '',
+        inventory_quantity: currentEditItem ? (currentEditItem.inventory_quantity || 0) : 0,
+        is_available: currentEditItem ? (currentEditItem.is_available !== false ? 1 : 0) : 1
     };
 
     const result = await AdminAPI.updateMenuItem(updatedItem);
     
     if (result.success) {
         closeEditModal();
+        currentEditItem = null; // Clear the stored item
         renderMenu();
         alert('Menu item updated successfully!');
     } else {
