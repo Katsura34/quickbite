@@ -15,8 +15,13 @@ session_start();
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
 
-// For demo purposes, use user_id from session or default to 1
-$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 1;
+// Check for authenticated user
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Authentication required. Please log in.']);
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
 
 switch ($method) {
     case 'GET':

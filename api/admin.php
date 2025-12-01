@@ -12,8 +12,11 @@ include "../db.php";
 
 session_start();
 
-// Check if user is admin
-$user_role = isset($_SESSION['role']) ? $_SESSION['role'] : 'admin'; // Default to admin for demo
+// Check for authenticated admin user
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    echo json_encode(['success' => false, 'message' => 'Admin authentication required. Please log in as admin.']);
+    exit;
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
