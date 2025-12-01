@@ -38,7 +38,9 @@ export const API = {
     // Fetch menu items from backend
     async getMenu() {
         try {
-            const response = await fetch(`${API_BASE_URL}/get_menu.php`);
+            const response = await fetch(`${API_BASE_URL}/get_menu.php`, {
+                credentials: 'include'
+            });
             const data = await response.json();
             if (data.success) {
                 return data.data;
@@ -53,7 +55,9 @@ export const API = {
     // Cart operations
     async getCart() {
         try {
-            const response = await fetch(`${API_BASE_URL}/cart.php`);
+            const response = await fetch(`${API_BASE_URL}/cart.php`, {
+                credentials: 'include'
+            });
             const data = await response.json();
             if (data.success) {
                 return data.data;
@@ -70,6 +74,7 @@ export const API = {
             const response = await fetch(`${API_BASE_URL}/cart.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ menu_item_id: menuItemId, quantity })
             });
             return await response.json();
@@ -84,6 +89,7 @@ export const API = {
             const response = await fetch(`${API_BASE_URL}/cart.php`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ cart_id: cartId, quantity })
             });
             return await response.json();
@@ -98,6 +104,7 @@ export const API = {
             const response = await fetch(`${API_BASE_URL}/cart.php`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ cart_id: cartId })
             });
             return await response.json();
@@ -112,6 +119,7 @@ export const API = {
             const response = await fetch(`${API_BASE_URL}/cart.php`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ clear_all: true })
             });
             return await response.json();
@@ -124,7 +132,9 @@ export const API = {
     // Orders operations
     async getOrders() {
         try {
-            const response = await fetch(`${API_BASE_URL}/orders.php`);
+            const response = await fetch(`${API_BASE_URL}/orders.php`, {
+                credentials: 'include'
+            });
             const data = await response.json();
             if (data.success) {
                 return data.data;
@@ -141,6 +151,7 @@ export const API = {
             const response = await fetch(`${API_BASE_URL}/orders.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ delivery_address: deliveryAddress })
             });
             return await response.json();

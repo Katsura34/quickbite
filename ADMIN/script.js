@@ -37,7 +37,9 @@ const AdminAPI = {
     // Menu Management
     async getMenu() {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`);
+            const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`, {
+                credentials: 'include'
+            });
             const data = await response.json();
             if (data.success) {
                 return data.data;
@@ -54,6 +56,7 @@ const AdminAPI = {
             const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(item)
             });
             return await response.json();
@@ -68,6 +71,7 @@ const AdminAPI = {
             const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(item)
             });
             return await response.json();
@@ -82,6 +86,7 @@ const AdminAPI = {
             const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ id })
             });
             return await response.json();
@@ -98,7 +103,9 @@ const AdminAPI = {
             if (status) {
                 url += `&status=${status}`;
             }
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                credentials: 'include'
+            });
             const data = await response.json();
             if (data.success) {
                 return data.data;
@@ -115,6 +122,7 @@ const AdminAPI = {
             const response = await fetch(`${API_BASE_URL}/admin.php?action=orders`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ order_id: orderId, status })
             });
             return await response.json();
@@ -127,7 +135,9 @@ const AdminAPI = {
     // Sales Reports
     async getSalesReport(date) {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin.php?action=sales&date=${date}`);
+            const response = await fetch(`${API_BASE_URL}/admin.php?action=sales&date=${date}`, {
+                credentials: 'include'
+            });
             const data = await response.json();
             if (data.success) {
                 return data.data;
