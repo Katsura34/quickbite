@@ -1,8 +1,12 @@
-import { MOCK_MENU, currentCart } from './data.js';
+import { MOCK_MENU, menuItems, currentCart, setMenuItems } from './data.js';
 import { renderCart, updateCartBadge } from './cart.js';
 
 const menuItemsGrid = document.getElementById('menu-items-grid');
 
+// Get menu items from API
+export function getMenuItems() {
+    return menuItems.length > 0 ? menuItems : MOCK_MENU;
+}
 
 export function renderMenu(items) {
     menuItemsGrid.innerHTML = '';
@@ -40,7 +44,8 @@ export function renderMenu(items) {
 }
 
 function handleAddToCart(itemId) {
-    const item = MOCK_MENU.find(i => i.id === parseInt(itemId));
+    const items = getMenuItems();
+    const item = items.find(i => i.id === parseInt(itemId));
     if (!item) return;
 
     const existingItem = currentCart.find(c => c.menu_item_id === item.id);
@@ -67,6 +72,7 @@ function handleAddToCart(itemId) {
 
 export function handleFilterMenu(e) {
     const filterText = e.currentTarget.textContent;
+    const items = getMenuItems();
     
     
     document.querySelectorAll('.category-filter').forEach(btn => {
@@ -76,9 +82,9 @@ export function handleFilterMenu(e) {
     e.currentTarget.classList.add('active', 'bg-blue-600', 'text-white', 'shadow-md');
     e.currentTarget.classList.remove('bg-white', 'text-gray-700', 'border');
 
-    let filteredItems = MOCK_MENU;
+    let filteredItems = items;
     if (filterText !== 'All Items') {
-        filteredItems = MOCK_MENU.filter(item => item.category === filterText);
+        filteredItems = items.filter(item => item.category === filterText);
     }
     renderMenu(filteredItems);
 }

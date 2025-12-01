@@ -47,6 +47,7 @@ CREATE TABLE `menu_items` (
   `description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL CHECK (`price` >= 0),
   `category` varchar(50) DEFAULT NULL,
+  `image_url` varchar(255) DEFAULT NULL,
   `inventory_quantity` int(11) DEFAULT 0 CHECK (`inventory_quantity` >= 0),
   `is_available` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -57,11 +58,11 @@ CREATE TABLE `menu_items` (
 -- Dumping data for table `menu_items`
 --
 
-INSERT INTO `menu_items` (`id`, `name`, `description`, `price`, `category`, `inventory_quantity`, `is_available`, `created_at`, `updated_at`) VALUES
-(1, 'Burger', 'Juicy beef burger with cheese', 120.99, 'Main Course', 50, 1, '2025-11-10 03:45:23', '2025-11-10 03:49:50'),
-(2, 'Fries', 'Crispy golden fries', 80.25, 'Sides', 100, 1, '2025-11-10 03:45:23', '2025-11-10 03:50:02'),
-(3, 'Coke', 'Refreshing cola drink', 45.00, 'Beverages', 200, 1, '2025-11-10 03:45:23', '2025-11-10 03:50:14'),
-(4, 'Pizza Slice', 'Cheesy pepperoni pizza', 350.00, 'Main Course', 30, 1, '2025-11-10 03:45:23', '2025-11-10 03:50:25');
+INSERT INTO `menu_items` (`id`, `name`, `description`, `price`, `category`, `image_url`, `inventory_quantity`, `is_available`, `created_at`, `updated_at`) VALUES
+(1, 'Burger', 'Juicy beef burger with cheese', 120.99, 'Main Course', '../assets/images/burger.jpg', 50, 1, '2025-11-10 03:45:23', '2025-11-10 03:49:50'),
+(2, 'Fries', 'Crispy golden fries', 80.25, 'Sides', '../assets/images/fries.jpg', 100, 1, '2025-11-10 03:45:23', '2025-11-10 03:50:02'),
+(3, 'Coke', 'Refreshing cola drink', 45.00, 'Beverages', '../assets/images/cola.jpg', 200, 1, '2025-11-10 03:45:23', '2025-11-10 03:50:14'),
+(4, 'Pizza Slice', 'Cheesy pepperoni pizza', 350.00, 'Main Course', '../assets/images/pizza.jpg', 30, 1, '2025-11-10 03:45:23', '2025-11-10 03:50:25');
 
 -- --------------------------------------------------------
 

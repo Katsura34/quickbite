@@ -9,6 +9,7 @@ export const MOCK_MENU = [
    
 ];
 
+export let menuItems = [];
 export let currentCart = [];
 export let ordersHistory = [
 
@@ -22,6 +23,9 @@ export let ordersHistory = [
     }
 ];
 
+export function setMenuItems(items) {
+    menuItems = items;
+}
 export function updateCart(newCart) {
     currentCart = newCart;
 }

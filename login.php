@@ -1,4 +1,5 @@
 <?php
+session_start();
 include "db.php";
 
 $username = $_POST["username"];
@@ -14,14 +15,13 @@ if ($result->num_rows === 1) {
     $user = $result->fetch_assoc();
 
     if (password_verify($password, $user['password_hash'])) {
-        session_start();
         $_SESSION["user_id"] = $user["id"];
         $_SESSION["role"] = $user["role"];
 
         if ($user["role"] === "admin") {
-            header("Location: ADMIN/admin.html");
+            header("Location: ADMIN/admin.php");
         } else {
-            header("Location: USERS/users.html");
+            header("Location: USERS/users.php");
         }
         exit;
     } else {
