@@ -28,8 +28,7 @@ const initialLink = document.querySelector('[data-view="menu"]');
 
 
 function handleLogout() {
-    
-    alert('Logged out. This is where you would return to the login screen.');
+    window.location.href = '../logout.php';
 }
 
 
