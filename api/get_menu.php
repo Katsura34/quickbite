@@ -1,11 +1,22 @@
 <?php
 header('Content-Type: application/json');
-// Handle CORS - allow credentials
+
+// Handle CORS - allow credentials with origin validation
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-if ($origin) {
+// Allowed origins for CORS (add production domains as needed)
+$allowed_origins = [
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'http://127.0.0.1:8080',
+    'http://127.0.0.1:3000'
+];
+
+// For same-origin requests (no Origin header), allow the request
+// For cross-origin requests, validate against allowlist
+if ($origin && in_array($origin, $allowed_origins)) {
     header("Access-Control-Allow-Origin: $origin");
+    header('Access-Control-Allow-Credentials: true');
 }
-header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Methods: GET');
 
 include "../db.php";
