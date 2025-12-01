@@ -5,7 +5,15 @@ header('Access-Control-Allow-Methods: GET');
 
 include "../db.php";
 
-$sql = "SELECT id, name, description, price, category, inventory_quantity, is_available FROM menu_items WHERE is_available = 1";
+session_start();
+
+// Check for authenticated user
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Authentication required. Please log in.']);
+    exit;
+}
+
+$sql = "SELECT id, name, description, price, category, image_url, inventory_quantity, is_available FROM menu_items WHERE is_available = 1";
 $result = $conn->query($sql);
 
 $menu_items = [];
@@ -18,6 +26,7 @@ if ($result->num_rows > 0) {
             'description' => $row['description'],
             'price' => (float)$row['price'],
             'category' => $row['category'],
+            'imageUrl' => $row['image_url'],
             'inventory_quantity' => (int)$row['inventory_quantity'],
             'is_available' => (bool)$row['is_available']
         ];

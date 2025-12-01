@@ -41,7 +41,7 @@ function handleMenuManagement($conn, $method, $input) {
     switch ($method) {
         case 'GET':
             // Get all menu items (including unavailable)
-            $sql = "SELECT id, name, description, price, category, inventory_quantity, is_available, created_at, updated_at FROM menu_items";
+            $sql = "SELECT id, name, description, price, category, image_url, inventory_quantity, is_available, created_at, updated_at FROM menu_items";
             $result = $conn->query($sql);
             
             $menu_items = [];
@@ -52,6 +52,7 @@ function handleMenuManagement($conn, $method, $input) {
                     'description' => $row['description'],
                     'price' => (float)$row['price'],
                     'category' => $row['category'],
+                    'imageUrl' => $row['image_url'],
                     'inventory_quantity' => (int)$row['inventory_quantity'],
                     'is_available' => (bool)$row['is_available'],
                     'created_at' => $row['created_at'],
@@ -68,6 +69,7 @@ function handleMenuManagement($conn, $method, $input) {
             $description = isset($input['description']) ? $input['description'] : '';
             $price = isset($input['price']) ? (float)$input['price'] : 0;
             $category = isset($input['category']) ? $input['category'] : 'New Item';
+            $image_url = isset($input['image_url']) ? $input['image_url'] : '';
             $inventory_quantity = isset($input['inventory_quantity']) ? (int)$input['inventory_quantity'] : 0;
             
             if (empty($name) || $price < 0) {
@@ -75,9 +77,9 @@ function handleMenuManagement($conn, $method, $input) {
                 break;
             }
             
-            $sql = "INSERT INTO menu_items (name, description, price, category, inventory_quantity) VALUES (?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO menu_items (name, description, price, category, image_url, inventory_quantity) VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssdsi", $name, $description, $price, $category, $inventory_quantity);
+            $stmt->bind_param("ssdssi", $name, $description, $price, $category, $image_url, $inventory_quantity);
             
             if ($stmt->execute()) {
                 echo json_encode(['success' => true, 'message' => 'Menu item added', 'id' => $conn->insert_id]);
@@ -93,6 +95,7 @@ function handleMenuManagement($conn, $method, $input) {
             $description = isset($input['description']) ? $input['description'] : '';
             $price = isset($input['price']) ? (float)$input['price'] : 0;
             $category = isset($input['category']) ? $input['category'] : '';
+            $image_url = isset($input['image_url']) ? $input['image_url'] : '';
             $inventory_quantity = isset($input['inventory_quantity']) ? (int)$input['inventory_quantity'] : 0;
             $is_available = isset($input['is_available']) ? (int)$input['is_available'] : 1;
             
@@ -101,9 +104,9 @@ function handleMenuManagement($conn, $method, $input) {
                 break;
             }
             
-            $sql = "UPDATE menu_items SET name = ?, description = ?, price = ?, category = ?, inventory_quantity = ?, is_available = ? WHERE id = ?";
+            $sql = "UPDATE menu_items SET name = ?, description = ?, price = ?, category = ?, image_url = ?, inventory_quantity = ?, is_available = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssdsiii", $name, $description, $price, $category, $inventory_quantity, $is_available, $id);
+            $stmt->bind_param("ssdssiii", $name, $description, $price, $category, $image_url, $inventory_quantity, $is_available, $id);
             
             if ($stmt->execute()) {
                 echo json_encode(['success' => true, 'message' => 'Menu item updated']);

@@ -1,12 +1,12 @@
-import { renderMenu, handleFilterMenu } from './menu.js';
+import { renderMenu, handleFilterMenu, getMenuItems } from './menu.js';
 import { renderCart, updateCartBadge } from './cart.js';
 import { renderOrders } from './orders.js';
-import { MOCK_MENU } from './data.js';
+import { MOCK_MENU, API, setMenuItems } from './data.js';
 
 const navLinks = document.querySelectorAll('.nav-link');
 const categoryFilters = document.querySelectorAll('.category-filter');
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('logout-button').addEventListener('click', handleLogout);
     navLinks.forEach(link => {
@@ -16,7 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
         filter.addEventListener('click', handleFilterMenu);
     });
 
-    renderMenu(MOCK_MENU);
+    // Fetch menu data from API (database)
+    try {
+        const menuData = await API.getMenu();
+        if (menuData && menuData.length > 0) {
+            setMenuItems(menuData);
+            renderMenu(menuData);
+        } else {
+            // Fallback to mock data if API returns empty
+            setMenuItems(MOCK_MENU);
+            renderMenu(MOCK_MENU);
+        }
+    } catch (error) {
+        console.log('Error fetching menu from API, using mock data:', error);
+        setMenuItems(MOCK_MENU);
+        renderMenu(MOCK_MENU);
+    }
+    
     updateCartBadge();
 });
 
@@ -68,7 +84,7 @@ function handleViewChange(e) {
         if (activeFilter) {
             handleFilterMenu({ currentTarget: activeFilter });
         } else {
-             renderMenu(MOCK_MENU);
+             renderMenu(getMenuItems());
         }
     }
 }
