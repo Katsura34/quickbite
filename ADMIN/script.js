@@ -1,8 +1,11 @@
+// API Base URL - adjust for your server setup
+const API_BASE_URL = '../api';
+
 let MOCK_MENU = [
-    { id: 1, name: 'Burger', price: 120.99, category: 'Main Course', desc: 'Juicy beef burger with cheese' },
-    { id: 2, name: 'Fries', price: 80.25, category: 'Sides', desc: 'Crispy golden fries' },
-    { id: 3, name: 'Coke', price: 45.00, category: 'Beverages', desc: 'Refreshing cola drink' },
-    { id: 4, name: 'Pizza Slice', price: 350.00, category: 'Main Course', desc: 'Cheesy pepperoni pizza' },
+    { id: 1, name: 'Burger', price: 120.99, category: 'Main Course', description: 'Juicy beef burger with cheese' },
+    { id: 2, name: 'Fries', price: 80.25, category: 'Sides', description: 'Crispy golden fries' },
+    { id: 3, name: 'Coke', price: 45.00, category: 'Beverages', description: 'Refreshing cola drink' },
+    { id: 4, name: 'Pizza Slice', price: 350.00, category: 'Main Course', description: 'Cheesy pepperoni pizza' },
 ];
 
 // MOCK Sales Report Data
@@ -27,6 +30,114 @@ let orders = [
 ];
 
 let currentTab = 'PENDING';
+
+// --- Admin API Functions ---
+const AdminAPI = {
+    // Menu Management
+    async getMenu() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`);
+            const data = await response.json();
+            if (data.success) {
+                return data.data;
+            }
+            return MOCK_MENU;
+        } catch (error) {
+            console.log('Using mock menu data:', error);
+            return MOCK_MENU;
+        }
+    },
+
+    async addMenuItem(item) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+            return await response.json();
+        } catch (error) {
+            console.log('Menu API error:', error);
+            return { success: false, message: 'API unavailable' };
+        }
+    },
+
+    async updateMenuItem(item) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+            return await response.json();
+        } catch (error) {
+            console.log('Menu API error:', error);
+            return { success: false, message: 'API unavailable' };
+        }
+    },
+
+    async deleteMenuItem(id) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin.php?action=menu`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            return await response.json();
+        } catch (error) {
+            console.log('Menu API error:', error);
+            return { success: false, message: 'API unavailable' };
+        }
+    },
+
+    // Order Management
+    async getOrders(status = '') {
+        try {
+            let url = `${API_BASE_URL}/admin.php?action=orders`;
+            if (status) {
+                url += `&status=${status}`;
+            }
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.success) {
+                return data.data;
+            }
+            return MOCK_ORDERS;
+        } catch (error) {
+            console.log('Using mock orders:', error);
+            return MOCK_ORDERS;
+        }
+    },
+
+    async updateOrderStatus(orderId, status) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin.php?action=orders`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: orderId, status })
+            });
+            return await response.json();
+        } catch (error) {
+            console.log('Order API error:', error);
+            return { success: false, message: 'API unavailable' };
+        }
+    },
+
+    // Sales Reports
+    async getSalesReport(date) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin.php?action=sales&date=${date}`);
+            const data = await response.json();
+            if (data.success) {
+                return data.data;
+            }
+            return null;
+        } catch (error) {
+            console.log('Sales API error:', error);
+            return null;
+        }
+    }
+};
 
 // --- DOM Elements ---
 
@@ -64,6 +175,12 @@ document.addEventListener('DOMContentLoaded', () => {
     generateReportBtn.addEventListener('click', () => {
           renderSalesReport(reportDateInput.value);
     });
+
+    // Setup logout button
+    const logoutBtn = document.getElementById('logout-button-admin');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogoutAdmin);
+    }
 
     // Initial render
     renderSalesReport(reportDateInput.value); 
@@ -119,8 +236,7 @@ function handleViewChangeAdmin(e) {
 
 
 function handleLogoutAdmin() {
-    document.getElementById('login-view').style.display = 'flex';
-    adminInterface.style.display = 'none';
+    window.location.href = '../logout.php';
 }
 
 
@@ -304,7 +420,7 @@ function renderMenu() {
    
     MOCK_MENU.forEach(item => {
         const formattedPrice = item.price ? parseFloat(item.price).toFixed(2) : '0.00';
-        const description = item.desc || 'No description available.';
+        const description = item.description || 'No description available.';
 
         menuList.innerHTML += `
             <div class="p-6 bg-white rounded-2xl shadow-lg border border-gray-200 transition duration-300 hover:shadow-xl">
@@ -329,6 +445,7 @@ window.closeAddModal = function() {
     document.getElementById('item-name').value = '';
     document.getElementById('item-price').value = '';
     document.getElementById('item-desc').value = '';
+    document.getElementById('item-category').value = '';
     document.getElementById('add-modal').classList.add('hidden'); 
 }
 
@@ -336,7 +453,8 @@ window.closeAddModal = function() {
 window.addItem = function() {
     const name = document.getElementById('item-name').value;
     const price = parseFloat(document.getElementById('item-price').value);
-    const desc = document.getElementById('item-desc').value;
+    const description = document.getElementById('item-desc').value;
+    const category = document.getElementById('item-category').value || 'New Item';
 
     if (!name || isNaN(price) || price < 0) {
         alert("Item Name and valid Price are required!");
@@ -348,8 +466,8 @@ window.addItem = function() {
         id: Date.now(), 
         name: name, 
         price: price, 
-        desc: desc,
-        category: 'New Item' 
+        description: description,
+        category: category 
     };
 
     MOCK_MENU.push(newItem);

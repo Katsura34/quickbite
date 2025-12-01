@@ -20,15 +20,16 @@ if ($result->num_rows === 1) {
         $_SESSION["role"] = $user["role"];
 
         if ($role === "admin") {
-            header("Location: admin_dashboard.php");
+            header("Location: ADMIN/admin.html");
         } else {
-            header("Location: customer_home.php");
+            header("Location: USERS/users.html");
         }
         exit;
     } else {
-        echo "Incorrect password!";
+        echo "<script>alert('Incorrect password!'); window.location='login.html';</script>";
     }
 } else {
-    echo "User not found!";
+    echo "<script>alert('User not found!'); window.location='login.html';</script>";
 }
 ?>
+
