@@ -828,9 +828,18 @@ function generateReport() {
 // ============================================
 
 function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    if (text === null || text === undefined) {
+        return '';
+    }
+    const str = String(text);
+    const htmlEscapes = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return str.replace(/[&<>"']/g, char => htmlEscapes[char]);
 }
 
 // ============================================
